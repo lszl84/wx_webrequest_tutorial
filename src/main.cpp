@@ -1,4 +1,5 @@
 #include <wx/wx.h>
+#include <wx/settings.h>
 
 #include "bitmapgallery.h"
 
@@ -108,4 +109,7 @@ void MyFrame::BuildUI()
     mainSizer->Add(panel, 1, wxEXPAND);
     mainSizer->SetMinSize(FromDIP(wxSize(400, 400)));
     this->SetSizerAndFit(mainSizer);
+
+    this->SetBackgroundColour(wxSystemSettings::GetAppearance().IsDark() ? *wxBLACK : *wxWHITE);
+    this->descriptionField->SetBackgroundColour(this->GetBackgroundColour());
 }
