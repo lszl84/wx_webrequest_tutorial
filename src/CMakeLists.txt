@@ -31,4 +31,13 @@ else()
     add_executable(main WIN32 ${SRCS} main.exe.manifest)
 endif()
 
-target_link_libraries(main PRIVATE ${wxWidgets_LIBRARIES})
+if(UNIX AND NOT APPLE)
+    # On Linux CURL is REQUIRED for wxWidgets' wxWebRequest
+    # but it is not reported by wx-config when compiling wxWidgets
+    # using CMake. So we need to search for it manually.
+    # See bug: https://github.com/wxWidgets/wxWidgets/issues/22860
+    find_package(CURL REQUIRED)
+    target_link_libraries(main PRIVATE ${wxWidgets_LIBRARIES} ${CURL_LIBRARIES})
+else()
+    target_link_libraries(main PRIVATE ${wxWidgets_LIBRARIES})
+endif()
