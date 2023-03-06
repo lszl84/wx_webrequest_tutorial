@@ -12,7 +12,7 @@ endif()
 
 set(wxWidgets_USE_STATIC 1)
 
-find_package(wxWidgets REQUIRED)
+find_package(wxWidgets REQUIRED COMPONENTS net core base)
 
 set(SRCS main.cpp)
 
