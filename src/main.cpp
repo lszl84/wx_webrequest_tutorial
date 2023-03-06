@@ -1,6 +1,8 @@
 #include <wx/wx.h>
 #include <wx/settings.h>
 
+#include <wx/webrequest.h>
+
 #include "bitmapgallery.h"
 
 class MyApp : public wxApp
@@ -15,6 +17,7 @@ public:
 
 private:
     void BuildUI();
+    void DownloadProducts();
 
     BitmapGallery *bitmapView;
 
@@ -31,6 +34,8 @@ private:
     wxStaticText *ratingText;
 
     wxTextCtrl *descriptionField;
+
+    wxWebRequest request;
 };
 
 wxIMPLEMENT_APP(MyApp);
@@ -48,6 +53,7 @@ MyFrame::MyFrame(const wxString &title, const wxPoint &pos, const wxSize &size)
     : wxFrame(NULL, wxID_ANY, title, pos, size)
 {
     BuildUI();
+    DownloadProducts();
 }
 
 void MyFrame::BuildUI()
@@ -112,4 +118,36 @@ void MyFrame::BuildUI()
 
     this->SetBackgroundColour(wxSystemSettings::GetAppearance().IsDark() ? *wxBLACK : *wxWHITE);
     this->descriptionField->SetBackgroundColour(this->GetBackgroundColour());
+}
+
+void MyFrame::DownloadProducts()
+{
+    static constexpr auto Url = "https://dummyjson.com/products/";
+
+    request = wxWebSession::GetDefault().CreateRequest(this, Url);
+
+    if (!request.IsOk())
+    {
+        wxLogError("Failed to create request");
+        return;
+    }
+
+    this->Bind(wxEVT_WEBREQUEST_STATE, [this](wxWebRequestEvent &evt)
+               {
+                   if (evt.GetState() == wxWebRequest::State_Completed)
+                   {
+                       auto response = evt.GetResponse();
+                       if (response.GetStatus() == 200)
+                       {
+                           auto json = response.AsString();
+                           wxLogDebug("JSON: %s", json);
+                       }
+                       else
+                       {
+                           wxLogError("Failed to download products");
+                       }
+                   }
+               });
+
+    request.Start();
 }
