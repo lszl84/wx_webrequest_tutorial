@@ -18,6 +18,16 @@ set(SRCS main.cpp)
 
 include(${wxWidgets_USE_FILE})
 
+# download JSON library release (actually just a header file)
+include(FetchContent)
+
+if(CMAKE_VERSION VERSION_GREATER_EQUAL "3.24.0")
+    cmake_policy(SET CMP0135 NEW)
+endif()
+
+FetchContent_Declare(json URL https://github.com/nlohmann/json/releases/download/v3.11.2/json.tar.xz)
+FetchContent_MakeAvailable(json)
+
 if(APPLE)
     # create bundle on apple compiles
     add_executable(main MACOSX_BUNDLE ${SRCS})
@@ -37,7 +47,7 @@ if(UNIX AND NOT APPLE)
     # using CMake. So we need to search for it manually.
     # See bug: https://github.com/wxWidgets/wxWidgets/issues/22860
     find_package(CURL REQUIRED)
-    target_link_libraries(main PRIVATE ${wxWidgets_LIBRARIES} ${CURL_LIBRARIES})
+    target_link_libraries(main PRIVATE nlohmann_json::nlohmann_json ${wxWidgets_LIBRARIES} ${CURL_LIBRARIES})
 else()
-    target_link_libraries(main PRIVATE ${wxWidgets_LIBRARIES})
+    target_link_libraries(main PRIVATE nlohmann_json::nlohmann_json ${wxWidgets_LIBRARIES})
 endif()
