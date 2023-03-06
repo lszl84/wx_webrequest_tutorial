@@ -3,6 +3,11 @@
 
 #include <wx/webrequest.h>
 
+#include <nlohmann/json.hpp>
+
+#include <vector>
+#include "product.h"
+
 #include "bitmapgallery.h"
 
 class MyApp : public wxApp
@@ -18,6 +23,8 @@ public:
 private:
     void BuildUI();
     void DownloadProducts();
+
+    void RefreshCurrentProduct();
 
     BitmapGallery *bitmapView;
 
@@ -36,6 +43,9 @@ private:
     wxTextCtrl *descriptionField;
 
     wxWebRequest request;
+
+    std::vector<Product> products;
+    int currentProductIndex = 0;
 };
 
 wxIMPLEMENT_APP(MyApp);
@@ -118,6 +128,36 @@ void MyFrame::BuildUI()
 
     this->SetBackgroundColour(wxSystemSettings::GetAppearance().IsDark() ? *wxBLACK : *wxWHITE);
     this->descriptionField->SetBackgroundColour(this->GetBackgroundColour());
+
+    prevButton->Bind(wxEVT_BUTTON, [this](wxCommandEvent &evt)
+                     {
+                         if (this->currentProductIndex > 0)
+                         {
+                             this->currentProductIndex--;
+                             this->RefreshCurrentProduct();
+                         } });
+
+    nextButton->Bind(wxEVT_BUTTON, [this](wxCommandEvent &evt)
+                     {
+                         if (this->currentProductIndex < this->products.size() - 1)
+                         {
+                             this->currentProductIndex++;
+                             this->RefreshCurrentProduct();
+                         } });
+}
+
+void MyFrame::RefreshCurrentProduct()
+{
+    auto product = this->products[this->currentProductIndex];
+
+    this->titleText->SetLabel(product.title);
+    this->priceText->SetLabel(wxString::Format("$%.2Lf", product.price));
+    this->brandText->SetLabel(product.brand);
+    this->categoryText->SetLabel(product.category);
+    this->ratingText->SetLabel(wxString::Format("%.1f", product.rating));
+    this->descriptionField->SetValue(product.description);
+
+    Layout();
 }
 
 void MyFrame::DownloadProducts()
@@ -139,8 +179,23 @@ void MyFrame::DownloadProducts()
                        auto response = evt.GetResponse();
                        if (response.GetStatus() == 200)
                        {
-                           auto json = response.AsString();
-                           wxLogDebug("JSON: %s", json);
+                           auto productsJson = nlohmann::json::parse(response.AsString());
+                           for (auto &object : productsJson["products"])
+                           {
+                               Product p{
+                                   object["title"],
+                                   object["price"],
+                                   object["brand"],
+                                   object["category"],
+                                   object["rating"],
+                                   object["description"],
+                                   object["images"]};
+
+                               this->products.push_back(p);
+                           }
+
+                           this->currentProductIndex = 0;
+                           this->RefreshCurrentProduct();
                        }
                        else
                        {
