@@ -5,7 +5,8 @@
           "includePath": [
               "${workspaceFolder}/src/**",
               "${workspaceFolder}/build/stage/include/wx-3.2/**",
-              "${workspaceFolder}/build/subprojects/Build/wxWidgets_external/lib/wx/include/osx_cocoa-unicode-static-3.2/**"
+              "${workspaceFolder}/build/subprojects/Build/wxWidgets_external/lib/wx/include/osx_cocoa-unicode-static-3.2/**",
+              "${workspaceFolder}/build/subprojects/Build/wx_webrequest_tutorial_core/_deps/json-src/include/"
           ],
           "defines": [
               "__WXOSX_COCOA__",
@@ -22,7 +23,8 @@
           "name": "Windows",
           "includePath": [
               "${workspaceFolder}/src/**",
-              "${workspaceFolder}/build/stage/include/**"
+              "${workspaceFolder}/build/stage/include/**",
+              "${workspaceFolder}/build/subprojects/Build/wx_webrequest_tutorial_core/_deps/json-src/include/"
           ],
           "defines": [
               "__WXMSW__",
@@ -39,7 +41,8 @@
         "includePath": [
             "${workspaceFolder}/src/**",
             "${workspaceFolder}/build/stage/include/wx-3.1/**",
-            "${workspaceFolder}/build/subprojects/Build/wxWidgets_external/lib/wx/include/gtk3-unicode-static-3.1/**"
+            "${workspaceFolder}/build/subprojects/Build/wxWidgets_external/lib/wx/include/gtk3-unicode-static-3.1/**",
+            "${workspaceFolder}/build/subprojects/Build/wx_webrequest_tutorial_core/_deps/json-src/include/"
         ],
         "defines": [
             "__WXGTK__"
