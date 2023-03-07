@@ -6,9 +6,11 @@
 #include <nlohmann/json.hpp>
 
 #include <vector>
+#include <memory>
 #include "product.h"
 
 #include "bitmapgallery.h"
+#include "bitmaploader.h"
 
 class MyApp : public wxApp
 {
@@ -46,6 +48,8 @@ private:
 
     std::vector<Product> products;
     int currentProductIndex = 0;
+
+    std::unique_ptr<BitmapLoader> bitmapLoader;
 };
 
 wxIMPLEMENT_APP(MyApp);
@@ -144,6 +148,8 @@ void MyFrame::BuildUI()
                              this->currentProductIndex++;
                              this->RefreshCurrentProduct();
                          } });
+
+    bitmapLoader = std::make_unique<BitmapLoader>(bitmapView);
 }
 
 void MyFrame::RefreshCurrentProduct()
@@ -156,6 +162,9 @@ void MyFrame::RefreshCurrentProduct()
     this->categoryText->SetLabel(product.category);
     this->ratingText->SetLabel(wxString::Format("%.1f", product.rating));
     this->descriptionField->SetValue(product.description);
+
+    bitmapView->ResetBitmaps();
+    bitmapLoader->LoadBitmaps(product.imageUrls);
 
     Layout();
 }
@@ -201,8 +210,7 @@ void MyFrame::DownloadProducts()
                        {
                            wxLogError("Failed to download products");
                        }
-                   }
-               });
+                   } });
 
     request.Start();
 }
