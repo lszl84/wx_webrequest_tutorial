@@ -19,10 +19,35 @@ public:
     {
         wxLogDebug("Loading %zu bitmaps", urls.size());
 
-        wxLogDebug("    Replacing URLs and starting popping.");
-        urlsToLoad = std::queue<std::string>(std::deque<std::string>(urls.begin(), urls.end()));
+        if (isIdle)
+        {
+            wxLogDebug("    Idle. Switching to busy.");
+            isIdle = false;
 
-        LoadNextBitmap();
+            wxLogDebug("    Resetting bitmaps.");
+            bitmapView->ResetBitmaps();
+
+            wxLogDebug("    Replacing URLs and starting popping.");
+            urlsToLoad = std::queue<std::string>(std::deque<std::string>(urls.begin(), urls.end()));
+
+            LoadNextBitmap();
+        }
+        else
+        {
+            wxLogDebug("    Busy. Setting next batch.");
+            nextBatch = urls;
+
+            if (currentRequest.IsOk() && currentRequest.GetState() == wxWebRequest::State_Active)
+            {
+                wxLogDebug("    Cancelling current request.");
+                currentRequest.Cancel();
+            }
+        }
+    }
+
+    bool IsIdle()
+    {
+        return isIdle;
     }
 
 private:
@@ -38,7 +63,9 @@ private:
 
     void OnWebRequestState(wxWebRequestEvent &event)
     {
-        if (event.GetState() == wxWebRequest::State_Completed)
+        bool shouldEnqueueNextBatch = nextBatch.size() > 0;
+
+        if (!shouldEnqueueNextBatch && event.GetState() == wxWebRequest::State_Completed)
         {
             wxLogDebug(" -- Request finished. Adding bitmap: %s", event.GetResponse().GetURL());
 
@@ -54,14 +81,29 @@ private:
 
         if (event.GetState() != wxWebRequest::State_Active)
         {
-            if (urlsToLoad.empty())
+            if (shouldEnqueueNextBatch)
             {
-                wxLogDebug(" -- Request state <%s> and no more URLs to load. Finishing.", state(event.GetState()));
+                wxLogDebug(" -- Request state <%s> and next batch ready. Starting again.", state(event.GetState()));
+
+                isIdle = true;
+
+                LoadBitmaps(nextBatch);
+                nextBatch.clear();
             }
             else
             {
-                wxLogDebug(" -- Request state <%s> and more URLs to load. Loading next.", state(event.GetState()));
-                LoadNextBitmap();
+                wxLogDebug(" -- Request state <%s> and no next batch ready. Checking if more URLs to load.", state(event.GetState()));
+
+                if (urlsToLoad.empty())
+                {
+                    wxLogDebug(" -- Request state <%s> and no more URLs to load. Finishing && setting to Idle", state(event.GetState()));
+                    isIdle = true;
+                }
+                else
+                {
+                    wxLogDebug(" -- Request state <%s> and more URLs to load. Loading next.", state(event.GetState()));
+                    LoadNextBitmap();
+                }
             }
         }
     }
@@ -80,6 +122,8 @@ private:
             return "Unauthorized";
         case wxWebRequest::State_Failed:
             return "Failed";
+        case wxWebRequest::State_Cancelled:
+            return "Cancelled";
         default:
             return "Unknown";
         }
@@ -89,4 +133,7 @@ private:
 
     BitmapGallery *bitmapView;
     wxWebRequest currentRequest;
+
+    std::vector<std::string> nextBatch;
+    bool isIdle = true;
 };

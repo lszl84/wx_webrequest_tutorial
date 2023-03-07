@@ -163,7 +163,6 @@ void MyFrame::RefreshCurrentProduct()
     this->ratingText->SetLabel(wxString::Format("%.1f", product.rating));
     this->descriptionField->SetValue(product.description);
 
-    bitmapView->ResetBitmaps();
     bitmapLoader->LoadBitmaps(product.imageUrls);
 
     Layout();
