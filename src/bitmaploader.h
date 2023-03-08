@@ -4,6 +4,7 @@
 #include <wx/webrequest.h>
 
 #include <queue>
+#include <functional>
 
 #include "bitmapgallery.h"
 
@@ -48,6 +49,21 @@ public:
     bool IsIdle()
     {
         return isIdle;
+    }
+
+    void CancelAll(const std::function<void()> &done)
+    {
+        if (currentRequest.IsOk() && currentRequest.GetState() == wxWebRequest::State_Active)
+        {
+            urlsToLoad = {};
+            nextBatch = {};
+            finishCallback = done;
+            currentRequest.Cancel();
+        }
+        else
+        {
+            done();
+        }
     }
 
 private:
@@ -98,6 +114,11 @@ private:
                 {
                     wxLogDebug(" -- Request state <%s> and no more URLs to load. Finishing && setting to Idle", state(event.GetState()));
                     isIdle = true;
+
+                    if (finishCallback)
+                    {
+                        finishCallback();
+                    }
                 }
                 else
                 {
@@ -136,4 +157,6 @@ private:
 
     std::vector<std::string> nextBatch;
     bool isIdle = true;
+
+    std::function<void()> finishCallback;
 };

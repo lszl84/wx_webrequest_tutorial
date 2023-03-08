@@ -28,6 +28,8 @@ private:
 
     void RefreshCurrentProduct();
 
+    void OnClose(wxCloseEvent &event);
+
     BitmapGallery *bitmapView;
 
     wxStaticText *titleText;
@@ -50,6 +52,8 @@ private:
     int currentProductIndex = 0;
 
     std::unique_ptr<BitmapLoader> bitmapLoader;
+
+    bool quitRequested = false;
 };
 
 wxIMPLEMENT_APP(MyApp);
@@ -66,6 +70,8 @@ bool MyApp::OnInit()
 MyFrame::MyFrame(const wxString &title, const wxPoint &pos, const wxSize &size)
     : wxFrame(NULL, wxID_ANY, title, pos, size)
 {
+    this->Bind(wxEVT_CLOSE_WINDOW, &MyFrame::OnClose, this);
+
     BuildUI();
     DownloadProducts();
 }
@@ -143,7 +149,7 @@ void MyFrame::BuildUI()
 
     nextButton->Bind(wxEVT_BUTTON, [this](wxCommandEvent &evt)
                      {
-                         if (this->currentProductIndex < this->products.size() - 1)
+                         if (this->currentProductIndex < (int)this->products.size() - 1)
                          {
                              this->currentProductIndex++;
                              this->RefreshCurrentProduct();
@@ -209,7 +215,37 @@ void MyFrame::DownloadProducts()
                        {
                            wxLogError("Failed to download products");
                        }
+                   }
+
+                   if (quitRequested && evt.GetState() == wxWebRequest::State_Cancelled)
+                   {
+                       this->Close();
                    } });
 
     request.Start();
+}
+
+void MyFrame::OnClose(wxCloseEvent &evt)
+{
+    if (request.IsOk() && request.GetState() == wxWebRequest::State_Active)
+    {
+        quitRequested = true;
+        this->Hide();
+        this->CallAfter([this]()
+                        { request.Cancel(); });
+
+        evt.Veto();
+    }
+    else if (bitmapLoader && !bitmapLoader->IsIdle())
+    {
+        this->Hide();
+        this->CallAfter([this]()
+                        { bitmapLoader->CancelAll([this]()
+                                                  { this->Close(); }); });
+        evt.Veto();
+    }
+    else
+    {
+        evt.Skip();
+    }
 }
