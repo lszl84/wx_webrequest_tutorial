@@ -2,10 +2,12 @@
 
 Downloading and parsing JSON data with wxWebRequest in Windows, Linux, and MacOS.
 
+Full tutorial: https://www.youtube.com/watch?v=--j6O534lTk&t=1s
+
 ![Rectangles](/imgs/screen-windows.png)
 
-FREE wxWidgets course: https://www.youtube.com/playlist?list=PL0qQTroQZs5vVmTuBew-nTx9DIu6rRl2c
+
 
 ---
-Check out the blog for more! [www.justdevtutorials.com](https://www.justdevtutorials.com)
+Check out the blog for more! [www.lukesdevtutorials.com](https://www.lukesdevtutorials.com)
 ---
