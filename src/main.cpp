@@ -197,13 +197,14 @@ void MyFrame::DownloadProducts()
                            for (auto &object : productsJson["products"])
                            {
                                Product p{
-                                   object["title"],
-                                   object["price"],
-                                   object["brand"],
-                                   object["category"],
-                                   object["rating"],
-                                   object["description"],
-                                   object["images"]};
+                                   object.value("title", "Unknown Title"),
+                                   object.value("price", 0.0),
+                                   object.value("brand", "Unknown Brand"),
+                                   object.value("category", "Unknown Category"),
+                                   object.value("rating", 0.0),
+                                   object.value("description", ""),
+                                   object.value("images", nlohmann::json::array())
+                               };
 
                                this->products.push_back(p);
                            }
