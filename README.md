@@ -9,5 +9,5 @@ Full tutorial: https://www.youtube.com/watch?v=--j6O534lTk&t=1s
 
 
 ---
-Check out the blog for more! [www.onlyfastcode.com](https://www.onlyfastcode.com)
+Check out the blog for more! [devmindscape.com](https://devmindscape.com)
 ---
